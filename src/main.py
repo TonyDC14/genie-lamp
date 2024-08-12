@@ -7,6 +7,7 @@ import streamlit as st
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
+
 from config.config import get_allowed_extensions
 from src.project_processor import ProjectProcessor
 from src.prompt_generator import PromptGenerator
@@ -20,21 +21,23 @@ def display_response(response):
     """
     Displays the OpenAI response in a formatted and readable way.
     """
-    # Split response into sections by paragraphs
-    sections = response.split("\n\n")
-    
+    in_code_block = False
+    code_block_content = ""
+
     # Use expander to allow collapsing large responses
     with st.expander("OpenAI Response", expanded=True):
-        for section in sections:
-            # Detect and format code blocks
-            if section.strip().startswith("```") and section.strip().endswith("```"):
-                # Display as a code block
-                st.code(section.strip("```"), language="python")
-            elif section.strip().startswith("```"):
-                # Handle multi-line code blocks
-                st.code(section.split("```")[1], language="python")
+        for line in response.splitlines():
+            # Detect start and end of code blocks
+            if line.strip().startswith("```") and not in_code_block:
+                in_code_block = True
+                code_block_content = ""
+            elif line.strip().startswith("```") and in_code_block:
+                in_code_block = False
+                st.code(code_block_content, language="python")
+            elif in_code_block:
+                code_block_content += line + "\n"
             else:
-                st.markdown(section)
+                st.markdown(line)
 
 def main():
     st.title("Project Enhancement Interface")
@@ -80,6 +83,7 @@ def main():
         response = openai_client.openai_chat_request_prompt("This is a programming project", combined_prompt, max_tokens=2048)
 
         logging.debug("Response received from OpenAI API")
+        logging.debug(str(response))
 
         # Display the single, final response
         display_response(response)
