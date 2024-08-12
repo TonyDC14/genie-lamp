@@ -2,14 +2,16 @@ import logging
 import sys
 import os
 import streamlit as st
+
+# Set the base directory to the root of the project
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(BASE_DIR)
+
 from config.config import get_allowed_extensions
 from src.project_processor import ProjectProcessor
 from src.prompt_generator import PromptGenerator
 from src.openai_client import OpenAIClient
 
-# Set the base directory to the root of the project
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(BASE_DIR)
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
