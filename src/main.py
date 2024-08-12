@@ -24,8 +24,13 @@ def display_response(response):
     # Use expander to allow collapsing large responses
     with st.expander("OpenAI Response", expanded=True):
         for section in sections:
-            if "```" in section:
-                st.markdown(f"```python\n{section}\n```")
+            # Detect and format code blocks
+            if section.strip().startswith("```") and section.strip().endswith("```"):
+                # Display as a code block
+                st.code(section.strip("```"), language="python")
+            elif section.strip().startswith("```"):
+                # Handle multi-line code blocks
+                st.code(section.split("```")[1], language="python")
             else:
                 st.markdown(section)
 
