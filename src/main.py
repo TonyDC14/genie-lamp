@@ -40,7 +40,7 @@ def display_response(response):
                 st.markdown(line)
 
 def main():
-    st.title("Project Enhancement Interface")
+    st.title("Genie LAMP Interface")
 
     project_folder = st.text_input("Select Project Folder")
     new_requirements = st.text_area("New Requirements / Changes", height=200)
