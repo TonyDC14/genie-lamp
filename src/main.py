@@ -19,26 +19,41 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 
 def display_response(response):
-    """
-    Displays the OpenAI response in a formatted and readable way.
-    """
+    """ Displays the OpenAI response in a formatted and readable way, handling nested code blocks. """
     in_code_block = False
     code_block_content = ""
+    final_output = []
 
-    # Use expander to allow collapsing large responses
     with st.expander("OpenAI Response", expanded=True):
-        for line in response.splitlines():
-            # Detect start and end of code blocks
-            if line.strip().startswith("```") and not in_code_block:
-                in_code_block = True
-                code_block_content = ""
-            elif line.strip().startswith("```") and in_code_block:
-                in_code_block = False
-                st.code(code_block_content, language="python")
+        lines = response.splitlines()
+        for line in lines:
+            if line.strip().startswith("```"):
+                if not in_code_block:
+                    # Entering a code block
+                    in_code_block = True
+                    code_block_content = ""
+                else:
+                    # Exiting a code block
+                    in_code_block = False
+                    final_output.append("```")
+                    final_output.append(code_block_content.strip())
+                    final_output.append("```")
             elif in_code_block:
-                code_block_content += line + "\n"
+                # Add lines to code block content, ignoring nested code blocks
+                if not line.strip().startswith("```"):
+                    code_block_content += line + "\n"
             else:
-                st.markdown(line)
+                # Normal line outside of code blocks
+                final_output.append(line)
+
+        # Render the final output
+        for item in final_output:
+            if item.startswith("```"):
+                # It's a code block, render as code
+                st.code(item, language="python")
+            else:
+                # It's normal text, render as Markdown
+                st.markdown(item)
 
 
 def main():

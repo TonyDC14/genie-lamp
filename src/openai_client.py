@@ -13,7 +13,7 @@ class OpenAIClient:
     @retry(wait=wait_random_exponential(multiplier=1, max=60), stop=stop_after_attempt(5))
     def openai_chat_request_prompt(self, system_prompt: str, usr_prompt: str, max_tokens=4095):
         response = self.client(
-            model="gpt-4-turbo",
+            model="gpt-4o-2024-08-06",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": usr_prompt}
