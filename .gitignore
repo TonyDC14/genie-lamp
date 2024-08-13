@@ -3,12 +3,15 @@ __pycache__/
 *.pyc
 
 # Ignore environment files
-.env
+#.env
 .venv
-*.env
+#*.env
 
 # Ignore test reports
 .coverage
 nosetests.xml
 coverage.xml
 *.cover
+
+# IDE
+.idea

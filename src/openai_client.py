@@ -1,4 +1,6 @@
 import openai
+from tenacity import retry, wait_random_exponential, stop_after_attempt
+
 
 class OpenAIClient:
     """
@@ -8,9 +10,10 @@ class OpenAIClient:
         openai.api_key = api_key  # Correctly assign the API key to the OpenAI module
         self.client = openai.ChatCompletion.create
 
-    def openai_chat_request_prompt(self, system_prompt: str, usr_prompt: str, max_tokens=2048):
+    @retry(wait=wait_random_exponential(multiplier=1, max=60), stop=stop_after_attempt(5))
+    def openai_chat_request_prompt(self, system_prompt: str, usr_prompt: str, max_tokens=4095):
         response = self.client(
-            model="gpt-3.5-turbo",
+            model="gpt-4-turbo",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": usr_prompt}

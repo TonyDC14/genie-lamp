@@ -1,6 +1,7 @@
 import logging
-import sys
 import os
+import sys
+
 import streamlit as st
 
 # Set the base directory to the root of the project
@@ -8,14 +9,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
 
-from config.config import get_allowed_extensions
+from config.config import get_allowed_extensions, get_api_key
 from src.project_processor import ProjectProcessor
-from src.prompt_generator import PromptGenerator
 from src.openai_client import OpenAIClient
 
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 def display_response(response):
     """
@@ -38,6 +39,7 @@ def display_response(response):
                 code_block_content += line + "\n"
             else:
                 st.markdown(line)
+
 
 def main():
     st.title("Genie LAMP Interface")
@@ -75,9 +77,10 @@ def main():
             combined_prompt += f"\n\nDocumentation:\n{additional_docs}"
 
         logging.debug("Combined prompt created successfully")
+        logging.debug("Prompt:" + str(combined_prompt))
 
         # Initialize OpenAI client
-        openai_client = OpenAIClient(api_key="your-api-key-here")
+        openai_client = OpenAIClient(api_key=get_api_key())
 
         # Send the single, combined prompt to OpenAI
         response = openai_client.openai_chat_request_prompt("This is a programming project", combined_prompt, max_tokens=2048)
@@ -87,6 +90,7 @@ def main():
 
         # Display the single, final response
         display_response(response)
+
 
 if __name__ == "__main__":
     main()

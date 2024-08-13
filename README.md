@@ -16,6 +16,10 @@ This project provides a Streamlit interface to enhance your programming projects
     ```bash
     pip install -r requirements.txt
     ```
+   If you're using Anaconda or Miniconda, you can install the necessary dependencies directly using conda:
+   ```bash
+   conda install -c conda-forge pillow python-dotenv tenacity
+   ```
 
 3. Run the application:
     ```bash
