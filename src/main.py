@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import streamlit as st
+import tiktoken
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
@@ -18,6 +19,24 @@ def display_response(response):
     st.markdown(response, unsafe_allow_html=True)
 
 
+def split_text(text, max_tokens=4096):
+    encoding = tiktoken.encoding_for_model("gpt-4")
+    tokens = encoding.encode(text)
+    chunks = []
+    current_chunk = []
+
+    for token in tokens:
+        current_chunk.append(token)
+        if len(current_chunk) >= max_tokens:
+            chunks.append(current_chunk)
+            current_chunk = []
+
+    if current_chunk:
+        chunks.append(current_chunk)
+
+    return [encoding.decode(chunk) for chunk in chunks]
+
+
 def main():
     st.set_page_config(layout="wide")
     st.title("Genie LAMP Interface")
@@ -29,9 +48,7 @@ def main():
         additional_docs = st.text_area("Additional Documentation (Optional)", height=200)
         submit_button = st.button("Submit")
 
-    # Add a clear division before the output section
-    st.markdown("---")  # This adds a horizontal line
-    # st.header("Output")  # This is the title for the output section
+    st.markdown("---")
 
     if submit_button:
         logging.debug("Submit button clicked")
@@ -53,11 +70,10 @@ def main():
             return
 
         logging.debug("Project files content successfully read")
-        combined_prompt = f"This is my current programming project:\n{project_files_content}"
 
+        combined_prompt = f"This is my current programming project:\n{project_files_content}"
         if new_requirements:
             combined_prompt += f"\n\nNew Requirements:\n{new_requirements}"
-
         if additional_docs:
             combined_prompt += f"\n\nDocumentation:\n{additional_docs}"
 
@@ -65,12 +81,13 @@ def main():
         logging.debug("Prompt:" + str(combined_prompt))
 
         openai_client = OpenAIClient(api_key=get_api_key())
-        response = openai_client.openai_chat_request_prompt("This is a programming project", combined_prompt,
-                                                            max_tokens=2048)
+        chunks = split_text(combined_prompt, max_tokens=2000000)
+        final_prompt = ("Now given all this context, I need you to solve the <requirements>, generate a full detailed "
+                        "explanation of how to solve the requirements with code snippets if possible")
+        response = openai_client.send_chunks_with_context(chunks, final_prompt, max_tokens=2000000)
 
         logging.debug("Response received from OpenAI API")
         logging.debug(str(response))
-
         display_response(response)
 
 
