@@ -9,7 +9,7 @@ class OpenAIClient:
         self.client = openai.ChatCompletion.create
 
     # @retry(wait=wait_random_exponential(multiplier=1, max=60), stop=stop_after_attempt(5))
-    def openai_chat_request_prompt(self, system_prompt: str, usr_prompt: str, max_tokens=2000000):
+    def openai_chat_request_prompt(self, system_prompt: str, usr_prompt: str, max_tokens=40000):
         response = self.client(
             model="gpt-4o-2024-08-06",
             messages=[
@@ -24,7 +24,7 @@ class OpenAIClient:
         )
         return response.choices[0].message['content']
 
-    def send_chunks_with_context(self, chunks, final_prompt, max_tokens=2000000):
+    def send_chunks_with_context(self, chunks, final_prompt, max_tokens=40000):
         messages = [{"role": "system", "content": "This is a programming project"}]
         for i, chunk in enumerate(chunks):
             messages.append({"role": "user", "content": chunk})
@@ -39,7 +39,7 @@ class OpenAIClient:
                 # For the last chunk, request a response
                 messages.append({"role": "user", "content": final_prompt})
                 response = self.client(
-                    model="gpt-4",
+                    model="gpt-4o-2024-08-06",
                     messages=messages,
                     temperature=0
                 )

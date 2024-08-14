@@ -19,7 +19,7 @@ def display_response(response):
     st.markdown(response, unsafe_allow_html=True)
 
 
-def split_text(text, max_tokens=4096):
+def split_text(text, max_tokens=40000):
     encoding = tiktoken.encoding_for_model("gpt-4")
     tokens = encoding.encode(text)
     chunks = []
@@ -81,10 +81,10 @@ def main():
         logging.debug("Prompt:" + str(combined_prompt))
 
         openai_client = OpenAIClient(api_key=get_api_key())
-        chunks = split_text(combined_prompt, max_tokens=2000000)
+        chunks = split_text(combined_prompt, max_tokens=40000)
         final_prompt = ("Now given all this context, I need you to solve the <requirements>, generate a full detailed "
                         "explanation of how to solve the requirements with code snippets if possible")
-        response = openai_client.send_chunks_with_context(chunks, final_prompt, max_tokens=2000000)
+        response = openai_client.send_chunks_with_context(chunks, final_prompt, max_tokens=40000)
 
         logging.debug("Response received from OpenAI API")
         logging.debug(str(response))

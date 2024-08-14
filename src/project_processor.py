@@ -1,5 +1,12 @@
 import os
 import re
+import sys
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(BASE_DIR)
+
+
+from config.config import get_ignored_folders
 
 
 class ProjectProcessor:
@@ -18,9 +25,10 @@ class ProjectProcessor:
         Tries to handle different file encodings gracefully.
         """
         file_contents = []
+        ignored_folders = get_ignored_folders()  # Get the list of ignored folders from the config
+
         for root, dirs, files in os.walk(self.folder_path):
-            # Filter out hidden directories
-            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ignored_folders]  # Ignore hidden folders and specific folder names
 
             for file in files:
                 file_extension = os.path.splitext(file)[1]  # Extract file extension
