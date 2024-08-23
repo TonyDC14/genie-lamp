@@ -23,7 +23,7 @@ This project provides a Streamlit interface to enhance your programming projects
 
 3. Run the application:
     ```bash
-    streamlit run src/main.py
+    streamlit run src/genie.py
     ```
 
 ## Usage
@@ -83,13 +83,5 @@ After filling in these fields, click the "Submit" button. The application will:
 
 After clicking "Submit," the application will process this information and provide detailed responses on how to achieve these requirements and changes.
 
-## Testing
-
-Run the tests:
-```bash
-python -m unittest discover -s tests
-```
-
 ## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+None -> We don´t do that here ;)

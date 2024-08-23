@@ -1,46 +1,56 @@
+import logging
+import time
+from typing import List
+
 import openai
-from tenacity import retry, wait_random_exponential, stop_after_attempt
+
+logger = logging.getLogger(__name__)
 
 
 class OpenAIClient:
-    """ Handles interactions with the OpenAI API. """
-    def __init__(self, api_key: str):
+
+    def __init__(self, api_key: str, model):
         openai.api_key = api_key
-        self.client = openai.ChatCompletion.create
+        self.client = openai.OpenAI(api_key=api_key)
 
-    # @retry(wait=wait_random_exponential(multiplier=1, max=60), stop=stop_after_attempt(5))
-    def openai_chat_request_prompt(self, system_prompt: str, usr_prompt: str, max_tokens=40000):
-        response = self.client(
-            model="gpt-4o-2024-08-06",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": usr_prompt}
-            ],
-            temperature=0,
-            max_tokens=max_tokens,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0
+    def ask_by_chunks(self, chunks: List):
+        openai_assistant = self.client.beta.assistants.create(
+            name="Code Reviewer",
+            instructions="You are a professional SR developer. Write and fix code to solve user requirements.",
+            tools=[{"type": "code_interpreter"}],
+            model="gpt-4-1106-preview"
         )
-        return response.choices[0].message['content']
+        openai_thread = self.client.beta.threads.create()
 
-    def send_chunks_with_context(self, chunks, final_prompt, max_tokens=40000):
-        messages = [{"role": "system", "content": "This is a programming project"}]
-        for i, chunk in enumerate(chunks):
-            messages.append({"role": "user", "content": chunk})
-            if i < len(chunks) - 1:
-                # Send the chunk without expecting a response
-                self.client(
-                    model="gpt-4o-2024-08-06",
-                    messages=messages,
-                    temperature=0
-                )
-            else:
-                # For the last chunk, request a response
-                messages.append({"role": "user", "content": final_prompt})
-                response = self.client(
-                    model="gpt-4o-2024-08-06",
-                    messages=messages,
-                    temperature=0
-                )
-                return response.choices[0].message['content']
+        for index, chunk in enumerate(chunks):
+            message = self.client.beta.threads.messages.create(
+                thread_id=openai_thread.id,
+                role="user",
+                content=chunk,
+            )
+
+            logger.info(f"Sent fragment {index + 1}, waiting for 60 seconds to send the next one...")
+            # time.sleep(60)
+
+        run = self.client.beta.threads.runs.create_and_poll(
+            thread_id=openai_thread.id,
+            assistant_id=openai_assistant.id,
+            instructions="Please provide detailed answer of the full given requirement.",
+        )
+
+        logger.info("Run completed with status: " + run.status)
+
+        final_response = ""
+        if run.status == "completed":
+            messages = self.client.beta.threads.messages.list(thread_id=openai_thread.id)
+
+            for message in messages:
+                if message.role == "assistant":
+                    assert message.content[0].type == "text"
+                    final_response = message.content[0].text.value
+                    logger.info("Assistant's response:")
+                    logger.info(final_response)
+                    break  # Stop after the first assistant message, assuming it's the relevant response.
+
+        self.client.beta.assistants.delete(openai_assistant.id)
+        return final_response
