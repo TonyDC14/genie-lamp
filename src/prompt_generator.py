@@ -5,6 +5,7 @@ class PromptProcessor:
     def __init__(self, model_name: str, max_length: int):
         self.encoding = tiktoken.encoding_for_model(model_name)
         self.max_length = int(max_length)
+        self.token_buffer = 30
 
     def split_prompt(self, prompt: str) -> list[str]:
         tokens = self.__encode_prompt(prompt)
@@ -14,9 +15,10 @@ class PromptProcessor:
         return self.encoding.encode(prompt)
 
     def __chunk_prompt(self, tokens: list[int]) -> list[str]:
+        max_chunk_size = self.max_length - self.token_buffer
         chunks = []
-        for i in range(0, len(tokens), self.max_length - 1):
-            chunk = self.encoding.decode(tokens[i:i + self.max_length - 1])
+        for i in range(0, len(tokens), max_chunk_size):
+            chunk = self.encoding.decode(tokens[i:i + max_chunk_size])
             chunks.append(chunk)
         return chunks
 

@@ -12,13 +12,14 @@ class OpenAIClient:
     def __init__(self, api_key: str, model):
         openai.api_key = api_key
         self.client = openai.OpenAI(api_key=api_key)
+        self.model = model
 
     def ask_by_chunks(self, chunks: List):
         openai_assistant = self.client.beta.assistants.create(
             name="Code Reviewer",
             instructions="You are a professional SR developer. Write and fix code to solve user requirements.",
             tools=[{"type": "code_interpreter"}],
-            model="gpt-4-1106-preview"
+            model=self.model
         )
         openai_thread = self.client.beta.threads.create()
 
@@ -36,6 +37,9 @@ class OpenAIClient:
             thread_id=openai_thread.id,
             assistant_id=openai_assistant.id,
             instructions="Please provide detailed answer of the full given requirement.",
+            tools=[{"type": "code_interpreter"}],
+            model=self.model,
+            max_completion_tokens=4096
         )
 
         logger.info("Run completed with status: " + run.status)
