@@ -23,7 +23,7 @@ This project provides a Streamlit interface to enhance your programming projects
 
 3. Run the application:
     ```bash
-    streamlit run src/genie.py
+    streamlit run genie.py
     ```
 
 ## Usage
